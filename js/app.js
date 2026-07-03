@@ -45,14 +45,39 @@ const veniceKeyQuick = document.getElementById('venice-key-quick');
 const veniceConnectQuickBtn = document.getElementById('venice-connect-quick-btn');
 const venicePanelStatus = document.getElementById('venice-panel-status');
 
-// Sync both inputs
+// Main card Venice
+const veniceKeyMain = document.getElementById('venice-key-main');
+const veniceConnectMainBtn = document.getElementById('venice-connect-main-btn');
+const veniceCardStatus = document.getElementById('venice-card-status');
+const veniceCard = document.getElementById('venice-card');
+
+// Sync all inputs
 function syncVeniceInputs() {
-  if (veniceKeyQuick && veniceKey) {
-    veniceKeyQuick.value = '•'.repeat(Math.min(veniceKey.length, 20));
-    venicePanelStatus.textContent = '✅';
-  } else if (veniceKeyQuick) {
-    veniceKeyQuick.value = '';
-    venicePanelStatus.textContent = '';
+  const masked = veniceKey ? '•'.repeat(Math.min(veniceKey.length, 20)) : '';
+  if (veniceKeyQuick) {
+    veniceKeyQuick.value = masked;
+    venicePanelStatus.textContent = veniceKey ? '✅' : '';
+  }
+  if (veniceKeyMain) {
+    veniceKeyMain.value = masked;
+    veniceCardStatus.textContent = '';
+  }
+  if (veniceCard) {
+    veniceCard.classList.toggle('connected', !!veniceKey);
+    if (veniceKey) {
+      veniceCardStatus.textContent = '✅';
+      veniceConnectMainBtn.textContent = 'Disconnect';
+      veniceConnectMainBtn.classList.add('disconnect');
+    } else {
+      veniceCardStatus.textContent = '';
+      veniceConnectMainBtn.textContent = 'Connect';
+      veniceConnectMainBtn.classList.remove('disconnect');
+    }
+  }
+  // Update nav button icon
+  const navAiIcon = document.getElementById('nav-ai-icon');
+  if (navAiIcon) {
+    navAiIcon.textContent = veniceKey ? '✅' : '🧠';
   }
 }
 
@@ -107,6 +132,15 @@ if (veniceConnectQuickBtn) {
   veniceConnectQuickBtn.addEventListener('click', () => {
     if (veniceKeyQuick) {
       veniceKeyInput.value = veniceKeyQuick.value;
+    }
+    handleVeniceConnect();
+    syncVeniceInputs();
+  });
+}
+if (veniceConnectMainBtn) {
+  veniceConnectMainBtn.addEventListener('click', () => {
+    if (veniceKeyMain) {
+      veniceKeyInput.value = veniceKeyMain.value;
     }
     handleVeniceConnect();
     syncVeniceInputs();

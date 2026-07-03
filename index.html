@@ -90,6 +90,23 @@ body { min-height: 100vh; }
       <p class="hero-sub">Upload any image or video. We analyze metadata, C2PA signatures, and visual artifacts to give you a trust score — all in your browser, nothing leaves your device.</p>
     </section>
 
+    <!-- Venice AI Connect Card (always visible before upload) -->
+    <section class="venice-card" id="venice-card">
+      <div class="venice-card-body">
+        <div class="venice-card-icon">🧠</div>
+        <div class="venice-card-content">
+          <div class="venice-card-label">Venice AI Deep Analysis</div>
+          <div class="venice-card-desc">Connect for vision-based AI detection — enter your API key</div>
+        </div>
+        <div class="venice-card-input-group">
+          <input type="password" class="venice-card-input" id="venice-key-main" placeholder="sk-..." aria-label="Venice API key">
+          <button class="venice-card-btn" id="venice-connect-main-btn">Connect</button>
+          <span class="venice-card-status" id="venice-card-status"></span>
+        </div>
+      </div>
+      <div class="venice-card-note">🔒 Stored locally in your browser only</div>
+    </section>
+
     <!-- Upload Zone -->
     <section class="upload-section" id="upload-section">
       <div class="upload-zone" id="dropzone" role="button" tabindex="0" aria-label="Upload file for verification">
