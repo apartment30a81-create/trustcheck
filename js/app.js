@@ -109,16 +109,27 @@ async function handleFile(file) {
   const result = await analyzeFile(file);
   currentResult = result;
 
-  // Update UI
+  // Update UI with local-only results
   renderMeter(result);
   renderTags(result.tags);
   renderEvidence(result.evidence);
   renderFileMetadata(file);
   renderFileName(file);
 
-  // Try Venice auto-analysis if connected
+  // Run Venice AI analysis automatically if connected
   if (veniceConnected && file.type.startsWith('image/')) {
-    runVeniceAnalysis(file);
+    statusText.textContent = 'Running deep AI analysis...';
+    const veniceResult = await runVeniceAnalysis(file, true);
+    if (veniceResult) {
+      // Merge Venice results into main score
+      mergeVeniceIntoMain(result, veniceResult);
+      // Re-render with merged data
+      renderMeter(result);
+      renderTags(result.tags);
+      renderEvidence(result.evidence);
+      // Add Venice enhanced badge
+      addVeniceBadge();
+    }
   }
 
   statusDot.className = 'status-dot';
@@ -200,11 +211,118 @@ function renderFileName(file) {
 
 /* ---- Venice AI ---- */
 
+function showVeniceStatus(msg) {
+  veniceStatus.hidden = false;
+  veniceStatusText.textContent = msg;
+}
+
+async function runVeniceAnalysis(file, autoMerge = false) {
+  if (!veniceConnected || !veniceKey) return null;
+
+  if (!autoMerge) {
+    // Manual mode: show in Venice tab
+    veniceResults.hidden = false;
+  }
+  veniceEvidence.innerHTML = '<p style="color:var(--text-muted);font-size:0.875rem">Running AI analysis...</p>';
+
+  try {
+    const result = await analyzeWithVenice(veniceKey, file);
+    if (autoMerge) return result;
+
+    // Manual mode UI update (existing behavior)
+    veniceEvidence.innerHTML = '';
+    if (result.is_ai_generated !== null) {
+      const summaryEl = document.createElement('div');
+      summaryEl.className = `evidence-item ${result.is_ai_generated ? 'high' : 'clean'}`;
+      summaryEl.innerHTML = `
+        <div class="evidence-left">
+          <div class="evidence-label">Overall Assessment</div>
+          <div class="evidence-desc">${result.summary || ''}</div>
+        </div>
+        <div class="evidence-score ${result.is_ai_generated ? 'high' : 'clean'}">${result.confidence_percent}%</div>
+      `;
+      veniceEvidence.appendChild(summaryEl);
+    }
+    if (result.evidence) {
+      result.evidence.forEach(item => {
+        const el = document.createElement('div');
+        el.className = `evidence-item ${item.severity === 'high' ? 'high' : item.severity === 'medium' ? 'medium' : 'low'}`;
+        el.innerHTML = `
+          <div class="evidence-left">
+            <div class="evidence-label">${item.finding}</div>
+            <div class="evidence-desc">${item.explanation || ''}</div>
+          </div>`;
+        veniceEvidence.appendChild(el);
+      });
+    }
+    return null;
+  } catch (err) {
+    veniceEvidence.innerHTML = `<p style="color:var(--danger);font-size:0.875rem">Error: ${err.message}</p>`;
+    return null;
+  }
+}
+
+/**
+ * Merge Venice AI results into the main analytics result object
+ */
+function mergeVeniceIntoMain(result, veniceResult) {
+  if (!veniceResult || veniceResult.is_ai_generated === null) return;
+
+  const aiScore = veniceResult.confidence_percent;
+  const localScore = result.trustScore;
+
+  // Weighted blend: 60% local, 40% Venice
+  const blendedScore = localScore * 0.6 + (100 - aiScore) * 0.4;
+  result.trustScore = Math.max(0, Math.min(100, Math.round(blendedScore)));
+
+  // Update verdict
+  result.verdict = result.trustScore >= 70 ? 'Likely Authentic'
+    : result.trustScore >= 40 ? 'Uncertain'
+    : 'Likely AI-Generated';
+
+  // Add Venice evidence to main list
+  result.evidence.push({
+    label: 'Venice AI Vision Analysis',
+    desc: veniceResult.summary || `${aiScore}% AI probability`,
+    severity: aiScore > 70 ? 'high' : aiScore > 40 ? 'medium' : 'clean',
+    score: aiScore
+  });
+
+  // Add Venice tag
+  result.tags.push({ label: '🧠 AI Analyzed', type: aiScore > 50 ? 'ai' : 'clean' });
+
+  // Update analysis mode metadata
+  const modeRow = document.querySelector('.metadata-row:last-child');
+  if (modeRow) {
+    modeRow.querySelector('.metadata-value').textContent = 'Local + Venice AI';
+  }
+}
+
+/**
+ * Show "Venice Enhanced" badge on the meter
+ */
+function addVeniceBadge() {
+  const existing = document.querySelector('.venice-enhanced-badge');
+  if (existing) return;
+
+  const badge = document.createElement('div');
+  badge.className = 'venice-enhanced-badge';
+  badge.innerHTML = '🧠 Venice AI Enhanced';
+  badge.style.cssText = `
+    display: inline-flex; align-items: center; gap: 4px;
+    margin-top: 12px; padding: 6px 14px;
+    border-radius: 20px; font-size: 0.8125rem; font-weight: 500;
+    background: var(--primary-muted); color: var(--primary);
+    animation: fadeUp 300ms ease;
+  `;
+  document.querySelector('.meter-section').appendChild(badge);
+}
+
+// Update handleVeniceConnect to re-run on existing file
 async function handleVeniceConnect() {
   const key = veniceKeyInput.value.trim();
 
   if (veniceConnected) {
-    // Disconnect
     veniceConnected = false;
     veniceKey = '';
     localStorage.removeItem('trustcheck-venice-key');
@@ -212,6 +330,7 @@ async function handleVeniceConnect() {
     veniceConnectBtn.textContent = 'Connect';
     veniceResults.hidden = true;
     veniceKeyInput.value = '';
+    document.querySelector('.venice-enhanced-badge')?.remove();
     return;
   }
 
@@ -229,9 +348,17 @@ async function handleVeniceConnect() {
     veniceConnectBtn.textContent = 'Disconnect';
     veniceConnectBtn.disabled = false;
 
-    // If we have a file, run analysis
     if (currentFile && currentFile.type.startsWith('image/') && currentResult) {
-      runVeniceAnalysis(currentFile);
+      statusText.textContent = 'Running deep AI analysis...';
+      const veniceResult = await runVeniceAnalysis(currentFile, true);
+      if (veniceResult) {
+        mergeVeniceIntoMain(currentResult, veniceResult);
+        renderMeter(currentResult);
+        renderTags(currentResult.tags);
+        renderEvidence(currentResult.evidence);
+        addVeniceBadge();
+        statusText.textContent = 'Complete';
+      }
     }
   } else {
     veniceConnectBtn.textContent = 'Invalid key';
@@ -239,54 +366,6 @@ async function handleVeniceConnect() {
       veniceConnectBtn.textContent = 'Connect';
       veniceConnectBtn.disabled = false;
     }, 2000);
-  }
-}
-
-function showVeniceStatus(msg) {
-  veniceStatus.hidden = false;
-  veniceStatusText.textContent = msg;
-}
-
-async function runVeniceAnalysis(file) {
-  if (!veniceConnected || !veniceKey) return;
-
-  veniceResults.hidden = false;
-  veniceEvidence.innerHTML = '<p style="color:var(--text-muted);font-size:0.875rem">Running AI analysis...</p>';
-
-  try {
-    const result = await analyzeWithVenice(veniceKey, file);
-    veniceEvidence.innerHTML = '';
-
-    if (result.is_ai_generated !== null) {
-      // Add a summary evidence item
-      const summaryEl = document.createElement('div');
-      summaryEl.className = `evidence-item ${result.is_ai_generated ? 'high' : 'clean'}`;
-      summaryEl.innerHTML = `
-        <div class="evidence-left">
-          <div class="evidence-label">Overall Assessment</div>
-          <div class="evidence-desc">${result.summary || ''}</div>
-        </div>
-        <div class="evidence-score ${result.is_ai_generated ? 'high' : 'clean'}">${result.confidence_percent}%</div>
-      `;
-      veniceEvidence.appendChild(summaryEl);
-    }
-
-    // Individual evidence points
-    if (result.evidence) {
-      result.evidence.forEach(item => {
-        const el = document.createElement('div');
-        el.className = `evidence-item ${item.severity === 'high' ? 'high' : item.severity === 'medium' ? 'medium' : 'low'}`;
-        el.innerHTML = `
-          <div class="evidence-left">
-            <div class="evidence-label">${item.finding}</div>
-            <div class="evidence-desc">${item.explanation || ''}</div>
-          </div>
-        `;
-        veniceEvidence.appendChild(el);
-      });
-    }
-  } catch (err) {
-    veniceEvidence.innerHTML = `<p style="color:var(--danger);font-size:0.875rem">Error: ${err.message}</p>`;
   }
 }
 
