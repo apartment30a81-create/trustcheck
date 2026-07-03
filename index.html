@@ -52,6 +52,9 @@ body { min-height: 100vh; }
     <div class="nav-right">
       <span id="status-dot" class="status-dot"></span>
       <span class="status-text" id="status-text">Ready</span>
+      <button class="nav-ai-btn" id="nav-ai-btn" onclick="toggleVenicePanel()" aria-label="Venice AI settings">
+        <span id="nav-ai-icon">🧠</span>
+      </button>
       <div class="theme-toggle-wrap">
         <button class="theme-btn" onclick="toggleTheme()" aria-label="Toggle theme">
           <span id="theme-icon">🌓</span>
@@ -60,6 +63,22 @@ body { min-height: 100vh; }
     </div>
   </div>
 </nav>
+
+<!-- Venice AI Panel (inline, always accessible) -->
+<div class="venice-panel" id="venice-panel" hidden>
+  <div class="venice-panel-inner">
+    <div class="venice-panel-left">
+      <span class="venice-panel-label">🧠 Venice AI</span>
+      <span class="venice-panel-desc">Deep vision-based analysis — enter your API key</span>
+    </div>
+    <div class="venice-panel-right">
+      <input type="password" class="venice-panel-input" id="venice-key-quick" placeholder="sk-..." aria-label="Venice API key">
+      <button class="venice-panel-btn" id="venice-connect-quick-btn">Connect</button>
+      <span class="venice-panel-status" id="venice-panel-status"></span>
+    </div>
+    <button class="venice-panel-close" onclick="toggleVenicePanel()" aria-label="Close">✕</button>
+  </div>
+</div>
 
 <!-- Main -->
 <main class="main">
@@ -175,6 +194,13 @@ body { min-height: 100vh; }
 /* Register service worker */
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/sw.js').catch(() => {});
+}
+/* Venice panel toggle */
+function toggleVenicePanel() {
+  const panel = document.getElementById('venice-panel');
+  const btn = document.getElementById('nav-ai-btn');
+  panel.hidden = !panel.hidden;
+  btn.classList.toggle('active', !panel.hidden);
 }
 /* Theme toggle */
 function toggleTheme() {

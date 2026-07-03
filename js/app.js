@@ -40,6 +40,22 @@ const veniceStatusText = document.getElementById('venice-status-text');
 const veniceResults = document.getElementById('venice-results');
 const veniceEvidence = document.getElementById('venice-evidence');
 
+// Quick panel Venice
+const veniceKeyQuick = document.getElementById('venice-key-quick');
+const veniceConnectQuickBtn = document.getElementById('venice-connect-quick-btn');
+const venicePanelStatus = document.getElementById('venice-panel-status');
+
+// Sync both inputs
+function syncVeniceInputs() {
+  if (veniceKeyQuick && veniceKey) {
+    veniceKeyQuick.value = '•'.repeat(Math.min(veniceKey.length, 20));
+    venicePanelStatus.textContent = '✅';
+  } else if (veniceKeyQuick) {
+    veniceKeyQuick.value = '';
+    venicePanelStatus.textContent = '';
+  }
+}
+
 // Tab switching
 document.querySelectorAll('.detail-tab').forEach(tab => {
   tab.addEventListener('click', () => {
@@ -87,6 +103,18 @@ if (veniceKey) {
 }
 
 veniceConnectBtn.addEventListener('click', handleVeniceConnect);
+if (veniceConnectQuickBtn) {
+  veniceConnectQuickBtn.addEventListener('click', () => {
+    if (veniceKeyQuick) {
+      veniceKeyInput.value = veniceKeyQuick.value;
+    }
+    handleVeniceConnect();
+    syncVeniceInputs();
+  });
+}
+
+// Sync initial state
+syncVeniceInputs();
 
 /* ---- Core Logic ---- */
 
@@ -331,6 +359,7 @@ async function handleVeniceConnect() {
     veniceResults.hidden = true;
     veniceKeyInput.value = '';
     document.querySelector('.venice-enhanced-badge')?.remove();
+    syncVeniceInputs();
     return;
   }
 
@@ -347,6 +376,7 @@ async function handleVeniceConnect() {
     showVeniceStatus('Connected');
     veniceConnectBtn.textContent = 'Disconnect';
     veniceConnectBtn.disabled = false;
+    syncVeniceInputs();
 
     if (currentFile && currentFile.type.startsWith('image/') && currentResult) {
       statusText.textContent = 'Running deep AI analysis...';
