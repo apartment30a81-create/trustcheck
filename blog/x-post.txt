@@ -1,0 +1,10 @@
+🚀 Introducing TrustCheck — a privacy-first content authenticity tool.
+
+Upload any image. We analyze metadata, C2PA signatures, and visual artifacts to give you a trust score. All in your browser — nothing leaves your device.
+
+Real or AI-generated? Now you can know. Privately.
+
+🔗 trustcheck-zeta.vercel.app
+🧵 Thread below ↓
+
+#AI #Deepfake #Privacy #OpenSource
