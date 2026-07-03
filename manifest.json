@@ -1,16 +1,20 @@
 {
   "name": "TrustCheck",
   "short_name": "TrustCheck",
-  "description": "Verify content authenticity — AI-generated content detection, metadata analysis, and trust scoring.",
+  "description": "Verify content authenticity — AI-generated content detection, metadata analysis, and trust scoring. Privacy-first, runs locally in your browser.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#09090b",
+  "background_color": "#0f172a",
   "theme_color": "#2563eb",
   "orientation": "portrait",
-  "categories": ["utilities", "productivity"],
+  "categories": ["utilities", "productivity", "security"],
   "icons": [
-    { "src": "/favicon/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
-    { "src": "/favicon/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+    { "src": "/favicon/android-chrome-192x192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/favicon/android-chrome-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/favicon/favicon-96x96.png", "sizes": "96x96", "type": "image/png" },
+    { "src": "/favicon/favicon-48x48.png", "sizes": "48x48", "type": "image/png" },
+    { "src": "/favicon/favicon-32x32.png", "sizes": "32x32", "type": "image/png" },
+    { "src": "/favicon/favicon-16x16.png", "sizes": "16x16", "type": "image/png" }
   ],
   "screenshots": [],
   "shortcuts": []
