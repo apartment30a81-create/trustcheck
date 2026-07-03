@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="system">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TrustCheck — Verify Content Authenticity</title>
+<meta name="description" content="Upload any image or video to check its authenticity. AI-generated content detection, metadata analysis, and trust scoring.">
+<meta name="keywords" content="AI detection, deepfake detector, content verification, trust check, C2PA, metadata analysis">
+
+<!-- Open Graph -->
+<meta property="og:title" content="TrustCheck — Content Authenticity Verifier">
+<meta property="og:description" content="Check if content is real or AI-generated. Privacy-first, runs in your browser.">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="en_US">
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="TrustCheck — Content Authenticity">
+<meta name="twitter:description" content="Upload any image to verify authenticity. Privacy-first AI detection.">
+
+<!-- PWA -->
+<link rel="manifest" href="/manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TrustCheck">
+<link rel="apple-touch-icon" href="/favicon/icon-192.png">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%232563eb'/%3E%3Ctext x='50' y='62' text-anchor='middle' fill='white' font-size='40' font-weight='bold' font-family='system-ui'%3ET%3C/text%3E%3C/svg%3E">
+
+<!-- Critical CSS inline, full CSS deferred -->
+<style>
+/* System font stack */
+:root { --font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { font-family: var(--font); line-height: 1.6; }
+body { min-height: 100vh; }
+</style>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- Navigation -->
+<nav class="nav" role="navigation">
+  <div class="nav-inner">
+    <div class="nav-brand">
+      <div class="nav-logo">T</div>
+      <span class="nav-name">TrustCheck</span>
+      <span class="nav-badge">Beta</span>
+    </div>
+    <div class="nav-right">
+      <span id="status-dot" class="status-dot"></span>
+      <span class="status-text" id="status-text">Ready</span>
+      <div class="theme-toggle-wrap">
+        <button class="theme-btn" onclick="toggleTheme()" aria-label="Toggle theme">
+          <span id="theme-icon">🌓</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- Main -->
+<main class="main">
+  <div class="container">
+
+    <!-- Hero -->
+    <section class="hero">
+      <h1 class="hero-title">Is this content <span class="gradient-text">real?</span></h1>
+      <p class="hero-sub">Upload any image or video. We analyze metadata, C2PA signatures, and visual artifacts to give you a trust score — all in your browser, nothing leaves your device.</p>
+    </section>
+
+    <!-- Upload Zone -->
+    <section class="upload-section" id="upload-section">
+      <div class="upload-zone" id="dropzone" role="button" tabindex="0" aria-label="Upload file for verification">
+        <div class="upload-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+        </div>
+        <h3 class="upload-title">Drop file here</h3>
+        <p class="upload-desc">or click to browse · JPG, PNG, WebP, MP4</p>
+        <p class="upload-privacy">🔒 Privacy-first — all analysis runs locally in your browser</p>
+        <input type="file" id="file-input" accept="image/*,video/mp4" hidden>
+      </div>
+    </section>
+
+    <!-- Results (hidden until analysis) -->
+    <section class="results" id="results" hidden>
+
+      <!-- Trust Meter -->
+      <div class="meter-section">
+        <div class="meter-ring" id="meter-ring">
+          <div class="meter-inner">
+            <div class="meter-score" id="meter-score">—</div>
+            <div class="meter-label">Trust Score</div>
+          </div>
+        </div>
+        <div class="meter-verdict" id="meter-verdict">
+          <span class="verdict-dot" id="verdict-dot"></span>
+          <span id="verdict-text">Analyzing...</span>
+          <span class="verdict-confidence" id="verdict-confidence"></span>
+        </div>
+      </div>
+
+      <!-- Tags -->
+      <div class="tags" id="tags"></div>
+
+      <!-- Expandable Details -->
+      <div class="details-toggle" id="details-toggle" role="button" tabindex="0">
+        <span>View detailed analysis</span>
+        <span class="toggle-arrow" id="toggle-arrow">▼</span>
+      </div>
+
+      <div class="details-panel" id="details-panel" hidden>
+        <div class="detail-tabs">
+          <button class="detail-tab active" data-tab="evidence">📊 Evidence</button>
+          <button class="detail-tab" data-tab="metadata">📋 Metadata</button>
+          <button class="detail-tab" data-tab="venice">🧠 AI Analysis</button>
+        </div>
+
+        <!-- Evidence Tab -->
+        <div class="tab-content active" id="tab-evidence">
+          <div class="evidence-list" id="evidence-list"></div>
+        </div>
+
+        <!-- Metadata Tab -->
+        <div class="tab-content" id="tab-metadata">
+          <div class="metadata-table" id="metadata-table"></div>
+        </div>
+
+        <!-- Venice AI Tab -->
+        <div class="tab-content" id="tab-venice">
+          <div class="venice-section">
+            <p class="venice-desc">Want deeper analysis? Connect Venice AI for vision-based AI detection.</p>
+            <div class="venice-input-group">
+              <input type="password" class="venice-input" id="venice-key" placeholder="Enter Venice API key..." aria-label="Venice API key">
+              <button class="venice-btn" id="venice-connect-btn">Connect</button>
+            </div>
+            <p class="venice-note">🔒 Your key is stored locally in your browser only. Never sent anywhere but Venice's API.</p>
+            <div class="venice-status" id="venice-status" hidden>
+              <span id="venice-status-text">Venice AI connected</span>
+            </div>
+            <div class="venice-results" id="venice-results" hidden>
+              <h4>AI Analysis Results</h4>
+              <div class="evidence-list" id="venice-evidence"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- New Analysis Button -->
+      <button class="new-btn" id="new-btn">Analyze another file</button>
+    </section>
+
+  </div>
+</main>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="footer-inner">
+    <p>TrustCheck <span class="footer-beta">Beta</span> · Privacy-first content verification</p>
+    <p class="footer-small">All analysis runs locally. No data is uploaded to any server.</p>
+  </div>
+</footer>
+
+<span class="scanline"></span>
+
+<!-- JS -->
+<script type="module" src="js/app.js"></script>
+<script>
+/* Register service worker */
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(() => {});
+}
+/* Theme toggle */
+function toggleTheme() {
+  const html = document.documentElement;
+  const cur = html.getAttribute('data-theme');
+  const next = cur === 'system' ? 'light' : cur === 'light' ? 'dark' : 'system';
+  html.setAttribute('data-theme', next);
+  localStorage.setItem('trustcheck-theme', next);
+  document.getElementById('theme-icon').textContent = next === 'dark' ? '☀️' : next === 'light' ? '🌙' : '🌓';
+}
+const saved = localStorage.getItem('trustcheck-theme');
+if (saved) document.documentElement.setAttribute('data-theme', saved);
+</script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+{
+  "name": "TrustCheck",
+  "short_name": "TrustCheck",
+  "description": "Verify content authenticity — AI-generated content detection, metadata analysis, and trust scoring.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#09090b",
+  "theme_color": "#2563eb",
+  "orientation": "portrait",
+  "categories": ["utilities", "productivity"],
+  "icons": [
+    { "src": "/favicon/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/favicon/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "screenshots": [],
+  "shortcuts": []
+}

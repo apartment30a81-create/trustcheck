@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://trustcheck.vercel.app/sitemap.xml
